@@ -2,49 +2,26 @@ import os
 import time
 import json
 import requests
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 from pathlib import Path
 
 # 저장할 폴더 설정
-MAIN_IMAGE_DIR = "images/main"     
-REVIEW_IMAGE_DIR = "images/reviews"  
-JSON_DIR = "data/json"           
+MAIN_IMAGE_DIR = "images/main"
+REVIEW_IMAGE_DIR = "images/reviews"
+JSON_DIR = "data/json"
 
 # 폴더 생성
 for directory in [MAIN_IMAGE_DIR, REVIEW_IMAGE_DIR, JSON_DIR]:
     Path(directory).mkdir(parents=True, exist_ok=True)
 
-# Selenium 설정
-chrome_options = Options()
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-chrome_options.add_argument("--disable-web-security")
-chrome_options.add_argument("--allow-running-insecure-content")
-chrome_options.add_argument("start-maximized")
-chrome_options.add_argument("disable-infobars")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--remote-debugging-port=9222")
-
-# User-Agent 설정
-chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-
-# 웹 드라이버 실행
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=chrome_options)
-
 # 쿠팡 파트너스 로그인 정보
 COUPANG_PARTNERS_ID = "november_07@naver.com"
 COUPANG_PARTNERS_PW = "goarns=00"
 
-def scrape_product(url):
-    """쿠팡 상품 정보를 크롤링하는 함수"""
+def scrape_product(driver, url):
+    """쿠팡 상품 정보를 크롤링"""
     driver.get(url)
 
     try:
@@ -62,7 +39,7 @@ def scrape_product(url):
     except:
         main_img_url = None
 
-    review_img_url = get_first_review_image()
+    review_img_url = get_first_review_image(driver)
 
     main_img_path = save_image(main_img_url, MAIN_IMAGE_DIR, f"{safe_title}_main.jpg") if main_img_url else None
     review_img_path = save_image(review_img_url, REVIEW_IMAGE_DIR, f"{safe_title}_review.jpg") if review_img_url else None
@@ -79,8 +56,8 @@ def scrape_product(url):
 
     return product_data
 
-def get_first_review_image():
-    """동영상이 아닌 첫 번째 정적 리뷰 이미지를 가져오는 함수"""
+def get_first_review_image(driver):
+    """동영상이 아닌 첫 번째 정적 리뷰 이미지를 가져오기"""
     try:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
         time.sleep(2)
@@ -102,7 +79,7 @@ def get_first_review_image():
     return None
 
 def save_image(url, folder, filename):
-    """이미지를 다운로드하여 지정된 폴더에 저장하는 함수"""
+    """이미지를 다운로드하여 지정된 폴더에 저장"""
     response = requests.get(url, stream=True)
     if response.status_code == 200:
         image_path = os.path.join(folder, filename)
@@ -112,7 +89,7 @@ def save_image(url, folder, filename):
         return image_path
     return None
 
-def login_coupang_partners():
+def login_coupang_partners(driver):
     """쿠팡 파트너스 로그인 (이미 로그인 상태이면 생략)"""
     driver.execute_script("window.open('https://partners.coupang.com', '_blank');")
     driver.switch_to.window(driver.window_handles[1])
@@ -122,7 +99,7 @@ def login_coupang_partners():
         WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "div.header-user"))
         )
-        print("✅ 이미 쿠팡 파트너스에 로그인되어 있음!")
+        print("✅ 이미 로그인되어 있음!")
         return True  
 
     except:
@@ -150,9 +127,9 @@ def login_coupang_partners():
         print("⚠️ 쿠팡 로그인 실패:", e)
         return False  
 
-def generate_coupang_partner_link(product_url):
+def generate_coupang_partner_link(driver, product_url):
     """쿠팡 파트너스에서 간편 링크 생성 및 단축 URL 가져오기"""
-    print("🔗 쿠팡 파트너스 간편 링크 생성 페이지로 이동...")
+    print("🔗 간편 링크 생성 중...")
     driver.get("https://partners.coupang.com/#affiliate/ws/link-to-any-page")
     
     try:
@@ -177,23 +154,8 @@ def generate_coupang_partner_link(product_url):
         short_link_element = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "div.tracking-url-input.large[disabled]"))
         )
-        short_link = short_link_element.text.strip()
-
-        print("✅ 간편 링크 생성 완료:", short_link)
-        return short_link
+        return short_link_element.text.strip()
 
     except Exception as e:
-        print("⚠️ 간편 링크 생성 실패:", e)
+        print("⚠️ 링크 생성 실패:", e)
         return None
-
-if __name__ == "__main__":
-    test_url = "https://www.coupang.com/vp/products/7566747125"
-
-    product_data = scrape_product(test_url)
-    print("✅ 크롤링 데이터:", product_data)
-
-    if login_coupang_partners():
-        partner_link = generate_coupang_partner_link(test_url)
-        print("🔗 최종 생성된 쿠팡 파트너스 링크:", partner_link)
-
-    input("프로그램을 종료하려면 Enter를 누르세요...")

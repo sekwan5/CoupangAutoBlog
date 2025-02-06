@@ -4,3 +4,4 @@ images/
 *.log
 *.db
 .env
+login_data.json
