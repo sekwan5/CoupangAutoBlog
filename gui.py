@@ -3,10 +3,11 @@ import os
 import json
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QTextEdit, QRadioButton, QButtonGroup, QSpinBox
+    QPushButton, QTextEdit, QRadioButton, QButtonGroup, QSpinBox, QComboBox
 )
 from PyQt5.QtCore import Qt
 from coupang_scraper import scrape_product,login_coupang_partners,generate_coupang_partner_link
+from gpt_review import generate_review
 from config import get_driver
 LOGIN_DATA_FILE = "login_data.json"  # 로그인 정보를 저장할 JSON 파일
 
@@ -75,7 +76,14 @@ class CoupangAutoBlogGUI(QWidget):
         # 📌 오른쪽 패널 (스크래핑 옵션)
         right_layout = QVBoxLayout()
         right_layout.setAlignment(Qt.AlignTop)  # 👉 위쪽으로 정렬
-        right_layout.setSpacing(6)  # 👉 간격 최소화
+        right_layout.setSpacing(7)  # 👉 간격 최소화
+
+        # 📌 블로그 종류 선택 (추가된 부분)
+        self.blog_type_label = QLabel("블로그 종류 선택")
+        self.blog_type_select = QComboBox(self)
+        self.blog_type_select.addItems(["네이버 블로그", "티스토리", "미디엄", "벨로그"])  # 선택 가능 블로그
+        right_layout.addWidget(self.blog_type_label)
+        right_layout.addWidget(self.blog_type_select)
 
         # 하나만 vs 여러 개 선택 (라디오 버튼을 수평 정렬)
         radio_layout = QHBoxLayout()
@@ -190,32 +198,44 @@ class CoupangAutoBlogGUI(QWidget):
 
     def run_process(self):
         """포스팅 시작 버튼 클릭 시 실행되는 함수"""
+        
+
+        product_url = self.url_input.text().strip()
+        if not product_url:
+                self.log_output.append("⚠️ 쿠팡 상품 URL을 입력하세요.")
+                return
         self.log_output.append("🚀 포스팅을 시작합니다...")
+
 
         driver = get_driver()  # 이제 버튼을 눌렀을 때만 Selenium 실행
 
+        # naver_id = self.naver_id_input.text().strip()
+        # naver_pw = self.naver_pw_input.text().strip()
+        coupang_id = self.coupang_id_input.text().strip()
+        coupang_pw = self.coupang_pw_input.text().strip()
+        gpt_api_key = self.gpt_api_key_input.text().strip()
+
         # 쿠팡 상품 크롤링 실행 (하나만 입력)
         if self.single_radio.isChecked():
-            product_url = self.url_input.text().strip()
-            if not product_url:
-                self.log_output.append("⚠️ 쿠팡 상품 URL을 입력하세요.")
-                return
+            
 
             self.log_output.append("🔍 쿠팡 상품 정보를 가져오는 중...")
-            product_data = scrape_product(product_url)
-            if product_data["상품명"] == "상품명을 찾을 수 없음":
+            product_data = scrape_product(driver,product_url)
+            print(product_data)
+            if product_data["title"] == "상품명을 찾을 수 없음":
                 self.log_output.append("⚠️ 상품 정보를 가져오지 못했습니다. URL을 확인하세요.")
                 return
-            self.log_output.append(f"✅ 크롤링 완료: {product_data['상품명']}")
+            self.log_output.append(f"✅ 크롤링 완료: {product_data['title']}")
 
-            if login_coupang_partners():
-                partner_link = generate_coupang_partner_link(product_url)
+            if login_coupang_partners(driver,coupang_id,coupang_pw):
+                partner_link = generate_coupang_partner_link(driver,product_url)
                 print("🔗 최종 생성된 쿠팡 파트너스 링크:", partner_link)
 
             # GPT 리뷰 생성
-            # self.log_output.append("✍ GPT 리뷰 생성 중...")
-            # review_content = generate_review(product_data["상품명"])
-            # self.log_output.append("✅ 리뷰 생성 완료")
+            self.log_output.append("✍ GPT 리뷰 생성 중...")
+            review_content = generate_review(product_data["title"],gpt_api_key)
+            print(review_content)
+            self.log_output.append("✅ 리뷰 생성 완료")
 
             # 네이버 블로그 포스팅
             # self.log_output.append("📝 네이버 블로그에 포스팅 중...")

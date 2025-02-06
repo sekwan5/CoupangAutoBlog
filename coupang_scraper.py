@@ -6,11 +6,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pathlib import Path
+from datetime import datetime
 
-# 저장할 폴더 설정
-MAIN_IMAGE_DIR = "images/main"
-REVIEW_IMAGE_DIR = "images/reviews"
-JSON_DIR = "data/json"
+# 저장할 폴더 설정 (절대 경로)
+MAIN_IMAGE_DIR = "C:/coupang/images/main"
+REVIEW_IMAGE_DIR = "C:/coupang/images/reviews"
+JSON_DIR = "C:/coupang/data/json"
 
 # 폴더 생성
 for directory in [MAIN_IMAGE_DIR, REVIEW_IMAGE_DIR, JSON_DIR]:
@@ -23,7 +24,7 @@ COUPANG_PARTNERS_PW = "goarns=00"
 def scrape_product(driver, url):
     """쿠팡 상품 정보를 크롤링"""
     driver.get(url)
-
+    time.sleep(3)
     try:
         title_element = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "h1.prod-buy-header__title"))
@@ -41,16 +42,18 @@ def scrape_product(driver, url):
 
     review_img_url = get_first_review_image(driver)
 
-    main_img_path = save_image(main_img_url, MAIN_IMAGE_DIR, f"{safe_title}_main.jpg") if main_img_url else None
-    review_img_path = save_image(review_img_url, REVIEW_IMAGE_DIR, f"{safe_title}_review.jpg") if review_img_url else None
+    current_date = datetime.now().strftime("%Y%m%d")
+    main_img_path = save_image(main_img_url, MAIN_IMAGE_DIR, f"{current_date}_{safe_title}.jpg") if main_img_url else None
+    review_img_path = save_image(review_img_url, REVIEW_IMAGE_DIR, f"{current_date}_{safe_title}.jpg") if review_img_url else None
 
     product_data = {
-        "상품명": title,
-        "대표 이미지 경로": main_img_path,
-        "리뷰 이미지 경로": review_img_path
+        "title": title,
+        "safe_title": safe_title,
+        "main_img_path": main_img_path,
+        "review_img_path": review_img_path
     }
 
-    json_file_path = os.path.join(JSON_DIR, f"{safe_title}.json")
+    json_file_path = os.path.join(JSON_DIR, f"{current_date}_{safe_title}.json")
     with open(json_file_path, "w", encoding="utf-8") as f:
         json.dump(product_data, f, ensure_ascii=False, indent=4)
 
@@ -89,7 +92,7 @@ def save_image(url, folder, filename):
         return image_path
     return None
 
-def login_coupang_partners(driver):
+def login_coupang_partners(driver,id,pw):
     """쿠팡 파트너스 로그인 (이미 로그인 상태이면 생략)"""
     driver.execute_script("window.open('https://partners.coupang.com', '_blank');")
     driver.switch_to.window(driver.window_handles[1])
@@ -115,8 +118,8 @@ def login_coupang_partners(driver):
         pw_input = driver.find_element(By.ID, "login-password-input")
         login_btn = driver.find_element(By.CSS_SELECTOR, "button.login__button")
 
-        id_input.send_keys(COUPANG_PARTNERS_ID)
-        pw_input.send_keys(COUPANG_PARTNERS_PW)
+        id_input.send_keys(id)
+        pw_input.send_keys(pw)
         login_btn.click()
         time.sleep(5)
 

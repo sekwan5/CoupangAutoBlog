@@ -2,9 +2,11 @@ import openai
 import json
 from config import OPENAI_API_KEY
 
-openai.api_key = OPENAI_API_KEY
 
-def generate_review(product_name):
+def generate_review(product_name,gpt_api_key):
+
+    openai.api_key = gpt_api_key
+    
     """GPT를 이용하여 블로그 리뷰를 JSON 형식으로 생성하는 함수 (구매 유도 섹션 제외, 1500자 이상, 전체 마크다운 적용)"""
 
     prompt = f"""
