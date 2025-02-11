@@ -8,8 +8,10 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from coupang_scraper import scrape_product,login_coupang_partners,generate_coupang_partner_link
 from gpt_review import generate_review
+from naver_blog import naver_login,go_to_blog_write
 from config import get_driver
 LOGIN_DATA_FILE = "login_data.json"  # 로그인 정보를 저장할 JSON 파일
+PRODUCT_DATA_PATH = "data/json"
 
 
 class CoupangAutoBlogGUI(QWidget):
@@ -209,8 +211,8 @@ class CoupangAutoBlogGUI(QWidget):
 
         driver = get_driver()  # 이제 버튼을 눌렀을 때만 Selenium 실행
 
-        # naver_id = self.naver_id_input.text().strip()
-        # naver_pw = self.naver_pw_input.text().strip()
+        naver_id = self.naver_id_input.text().strip()
+        naver_pw = self.naver_pw_input.text().strip()
         coupang_id = self.coupang_id_input.text().strip()
         coupang_pw = self.coupang_pw_input.text().strip()
         gpt_api_key = self.gpt_api_key_input.text().strip()
@@ -231,16 +233,25 @@ class CoupangAutoBlogGUI(QWidget):
                 partner_link = generate_coupang_partner_link(driver,product_url)
                 print("🔗 최종 생성된 쿠팡 파트너스 링크:", partner_link)
 
-            # GPT 리뷰 생성
-            self.log_output.append("✍ GPT 리뷰 생성 중...")
-            review_content = generate_review(product_data["title"],gpt_api_key)
-            print(review_content)
-            self.log_output.append("✅ 리뷰 생성 완료")
+            # # GPT 리뷰 생성
+            # self.log_output.append("✍ GPT 리뷰 생성 중...")
+            # review_content = generate_review(product_data["title"],gpt_api_key)
+            # print(review_content)
+            # self.log_output.append("✅ 리뷰 생성 완료")
 
             # 네이버 블로그 포스팅
-            # self.log_output.append("📝 네이버 블로그에 포스팅 중...")
-            # post_result = post_to_naver_blog(product_data, review_content)
-            # self.log_output.append(f"✅ 블로그 포스팅 완료: {post_result}")
+            self.log_output.append("📝 네이버 블로그에 포스팅 중...")
+            naver_login(driver,naver_id,naver_pw)
+            content = {"title":"테스트 제목","content":"테스트 본문"}
+            # data = {
+            #             "title": "펩시 제로슈거, 355ml, 24개",
+            #             "safe_title": "펩시_제로슈거,_355ml,_24개",
+            #             "main_img_path": "C:\\coupang\\images\\main\\test.jpg",
+            #             "review_img_path": "C:\\coupang\\images\\reviews\\펩시_제로슈거,_355ml,_24개_review.jpg"
+            #         }
+
+            go_to_blog_write(driver,naver_id,content,product_data)
+            self.log_output.append(f"✅ 블로그 포스팅 완료")
 
         # 키워드로 여러 개 포스팅 실행
         else:

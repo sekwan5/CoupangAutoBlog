@@ -9,9 +9,9 @@ from pathlib import Path
 from datetime import datetime
 
 # 저장할 폴더 설정 (절대 경로)
-MAIN_IMAGE_DIR = "C:/coupang/images/main"
-REVIEW_IMAGE_DIR = "C:/coupang/images/reviews"
-JSON_DIR = "C:/coupang/data/json"
+MAIN_IMAGE_DIR = "C:\\coupang\\images\\main"
+REVIEW_IMAGE_DIR = "C:\\coupang\\images\\reviews"
+JSON_DIR = "C:\\coupang\\data\\json"
 
 # 폴더 생성
 for directory in [MAIN_IMAGE_DIR, REVIEW_IMAGE_DIR, JSON_DIR]:
