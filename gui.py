@@ -213,6 +213,7 @@ class CoupangAutoBlogGUI(QWidget):
 
         naver_id = self.naver_id_input.text().strip()
         naver_pw = self.naver_pw_input.text().strip()
+        category = self.category_input.text().strip()
         coupang_id = self.coupang_id_input.text().strip()
         coupang_pw = self.coupang_pw_input.text().strip()
         gpt_api_key = self.gpt_api_key_input.text().strip()
@@ -250,7 +251,7 @@ class CoupangAutoBlogGUI(QWidget):
             #             "review_img_path": "C:\\coupang\\images\\reviews\\펩시_제로슈거,_355ml,_24개_review.jpg"
             #         }
 
-            go_to_blog_write(driver,naver_id,content,product_data)
+            go_to_blog_write(driver,naver_id,content,product_data,category)
             self.log_output.append(f"✅ 블로그 포스팅 완료")
 
         # 키워드로 여러 개 포스팅 실행

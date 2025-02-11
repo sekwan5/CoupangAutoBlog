@@ -6,7 +6,7 @@ from config import OPENAI_API_KEY
 def generate_review(product_name,gpt_api_key):
 
     openai.api_key = gpt_api_key
-    
+
     """GPT를 이용하여 블로그 리뷰를 JSON 형식으로 생성하는 함수 (구매 유도 섹션 제외, 1500자 이상, 전체 마크다운 적용)"""
 
     prompt = f"""
@@ -18,7 +18,7 @@ def generate_review(product_name,gpt_api_key):
     
     ## 출력 형식 (JSON)
     {{
-        "title": "# {product_name} - 최고의 선택!",
+        "title": "{product_name} - 최고의 선택!",
         "introduction": "## 🔍 서론\\n\\n{product_name}은 이런 문제를 해결해줍니다...",
         "product_analysis": {{
             "product_name": "{product_name}",

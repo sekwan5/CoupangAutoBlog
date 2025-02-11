@@ -25,7 +25,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 #         return False
 
 def naver_login(driver,id,pw):
-    driver.get("https://nid.naver.com/nidlogin.login")
+    # driver.get("https://nid.naver.com/nidlogin.login")
+    driver.execute_script("window.open('https://nid.naver.com/nidlogin.login', '_blank');")
+    driver.switch_to.window(driver.window_handles[2])
     time.sleep(2)
 
     # 아이디 입력 (pyperclip 사용)
@@ -66,7 +68,7 @@ def naver_login(driver,id,pw):
 
 from selenium.webdriver.common.action_chains import ActionChains
 
-def go_to_blog_write(driver, id_, content,data):
+def go_to_blog_write(driver, id_, content,data,category):
     """네이버 블로그 글쓰기 페이지 이동 및 자동 작성"""
     driver.get(f"https://blog.naver.com/{id_}?Redirect=Write")
     time.sleep(4)
@@ -110,17 +112,28 @@ def go_to_blog_write(driver, id_, content,data):
     # 본문 입력
     try:
         content_element = driver.find_element(By.CSS_SELECTOR, "span.se-placeholder.__se_placeholder.se-fs15")
-        action.move_to_element(content_element).click().send_keys(content["content"]).perform()
+        action = ActionChains(driver)
+        action.move_to_element(content_element).click().perform()
+        
+        # 첫 번째 텍스트 입력
+        first_content = (
+            "이 포스팅은 쿠팡 파트너스 활동의 일환으로,\n"
+            "이에 따른 일정액의 수수료를 제공받습니다.\n\n"
+        )
+        action.send_keys(first_content).perform()
+        
+        # 이미지 업로드
+        img_path = data["main_img_path"]  # 절대 경로 변환
+        print(f"🔍 변환된 절대 경로: {img_path}")
+        upload_image(driver, img_path)
+        time.sleep(2)
+        
+        # 이미지 아래에 추가 텍스트 입력
+        action.send_keys(Keys.ENTER).send_keys(Keys.ENTER)  # 이미지 아래로 커서 이동
+        action.send_keys(content['content']).perform()
         print("✅ 본문 작성 완료")
-        time.sleep(1)
     except Exception as e:
         print(f"⚠️ 본문 입력 실패: {e}")
-
-    img_path = data["main_img_path"]  # 절대 경로 변환
-    print(f"🔍 변환된 절대 경로: {img_path}")
-
-    # 이미지 업로드
-    upload_image(driver, img_path)
 
     # 발행 버튼 클릭
     try:
@@ -128,7 +141,7 @@ def go_to_blog_write(driver, id_, content,data):
         send.click()
         time.sleep(1)
             
-        select_category(driver, "python")
+        select_category(driver, category)
 
         post = driver.find_elements(By.TAG_NAME, "button")[9]
         post.click()
