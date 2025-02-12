@@ -1,6 +1,5 @@
 import openai
 import json
-from config import OPENAI_API_KEY
 
 
 def generate_review(product_name,gpt_api_key):
@@ -93,3 +92,6 @@ def generate_review(product_name,gpt_api_key):
         review_json = {"error": "JSON 변환 실패", "content": review_content}  # 오류 발생 시 원본 반환
 
     return review_json
+
+
+

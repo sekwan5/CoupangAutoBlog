@@ -243,7 +243,37 @@ class CoupangAutoBlogGUI(QWidget):
             # 네이버 블로그 포스팅
             self.log_output.append("📝 네이버 블로그에 포스팅 중...")
             naver_login(driver,naver_id,naver_pw)
-            content = {"title":"테스트 제목","content":"테스트 본문"}
+            content = {
+                        "title": "갤럭시워치 7 - 차원이 다른 스마트 라이프!",
+                        "introduction": "🔍 서론\n\n갤럭시워치 7은 최신 기술과 세련된 디자인을 갖춘 스마트워치입니다. 헬스 트래킹, 배터리 수명, 그리고 향상된 연결성을 통해 사용자들에게 완벽한 스마트 라이프를 제공합니다. 이번 리뷰에서는 이 제품의 장점과 실제 사용 경험을 바탕으로 상세하게 분석해보겠습니다.",
+                        "product_analysis": {
+                            "product_name": "갤럭시워치 7",
+                            "key_features": [
+                                "1️⃣ 고급스러운 디자인 – 알루미늄 및 스테인리스 소재로 더욱 세련된 스타일",
+                                "2️⃣ 배터리 성능 강화 – 일반 사용 기준 최대 3일 지속",
+                                "3️⃣ 헬스 & 피트니스 기능 – 심박수, 혈압, 산소포화도, 수면 패턴까지 실시간 모니터링"
+                            ],
+                            "target_audience": "스마트한 라이프스타일을 원하는 직장인, 운동을 즐기는 피트니스 마니아, 건강을 관리하고 싶은 사용자",
+                            "competitor_comparison": "🆚 경쟁 제품과의 차이점\n\n갤럭시워치 7은 애플워치보다 배터리 지속 시간이 길고, 삼성 스마트폰과의 연동성이 뛰어납니다. 또한, 구글 웨어 OS를 탑재하여 다양한 앱과의 호환성이 강화되었습니다."
+                        },
+                        "product_description": "✅ 이 제품이 특별한 이유!\n\n1️⃣ *스마트 기능의 혁신* - Google Assistant와의 완벽한 연동으로 음성 명령이 더욱 편리해졌습니다.\n2️⃣ *운동 트래킹 기능 강화* - 100가지 이상의 운동 모드를 제공하여 최적의 피트니스 경험을 제공합니다.\n3️⃣ *세련된 스타일* - 다양한 스트랩 옵션과 프리미엄 디자인으로 어떤 스타일에도 잘 어울립니다.",
+                        "faq": [
+                            {
+                                "question": "❓ 배터리는 얼마나 오래 사용할 수 있나요?",
+                                "answer": "✅ 일반 사용 기준으로 2~3일 지속되며, 절전 모드를 활용하면 최대 5일까지 가능합니다."
+                            },
+                            {
+                                "question": "❓ 방수 기능이 지원되나요?",
+                                "answer": "✅ 5ATM 등급 방수 기능을 제공하여 샤워나 수영 시에도 착용할 수 있습니다."
+                            },
+                            {
+                                "question": "❓ 삼성 스마트폰 없이도 사용 가능한가요?",
+                                "answer": "✅ 네, 구글 웨어 OS를 탑재하여 안드로이드 및 일부 iOS 기기에서도 사용할 수 있습니다."
+                            }
+                        ],
+                        "tags": ["#갤럭시워치7", "#스마트워치추천", "#삼성워치", "#운동필수템"]
+                    }
+
             # data = {
             #             "title": "펩시 제로슈거, 355ml, 24개",
             #             "safe_title": "펩시_제로슈거,_355ml,_24개",
@@ -251,7 +281,7 @@ class CoupangAutoBlogGUI(QWidget):
             #             "review_img_path": "C:\\coupang\\images\\reviews\\펩시_제로슈거,_355ml,_24개_review.jpg"
             #         }
 
-            go_to_blog_write(driver,naver_id,content,product_data,category)
+            go_to_blog_write(driver,naver_id,content,product_data,category,partner_link)
             self.log_output.append(f"✅ 블로그 포스팅 완료")
 
         # 키워드로 여러 개 포스팅 실행

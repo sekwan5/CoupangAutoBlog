@@ -68,7 +68,7 @@ def naver_login(driver,id,pw):
 
 from selenium.webdriver.common.action_chains import ActionChains
 
-def go_to_blog_write(driver, id_, content,data,category):
+def go_to_blog_write(driver, id_, content,product_data,category,partner_link):
     """네이버 블로그 글쓰기 페이지 이동 및 자동 작성"""
     driver.get(f"https://blog.naver.com/{id_}?Redirect=Write")
     time.sleep(4)
@@ -110,30 +110,7 @@ def go_to_blog_write(driver, id_, content,data,category):
         print(f"⚠️ 제목 입력 실패: {e}")
 
     # 본문 입력
-    try:
-        content_element = driver.find_element(By.CSS_SELECTOR, "span.se-placeholder.__se_placeholder.se-fs15")
-        action = ActionChains(driver)
-        action.move_to_element(content_element).click().perform()
-        
-        # 첫 번째 텍스트 입력
-        first_content = (
-            "이 포스팅은 쿠팡 파트너스 활동의 일환으로,\n"
-            "이에 따른 일정액의 수수료를 제공받습니다.\n\n"
-        )
-        action.send_keys(first_content).perform()
-        
-        # 이미지 업로드
-        img_path = data["main_img_path"]  # 절대 경로 변환
-        print(f"🔍 변환된 절대 경로: {img_path}")
-        upload_image(driver, img_path)
-        time.sleep(2)
-        
-        # 이미지 아래에 추가 텍스트 입력
-        action.send_keys(Keys.ENTER).send_keys(Keys.ENTER)  # 이미지 아래로 커서 이동
-        action.send_keys(content['content']).perform()
-        print("✅ 본문 작성 완료")
-    except Exception as e:
-        print(f"⚠️ 본문 입력 실패: {e}")
+    write_main_content(driver, content,product_data,partner_link)
 
     # 발행 버튼 클릭
     try:
@@ -149,6 +126,72 @@ def go_to_blog_write(driver, id_, content,data,category):
     except Exception as e:
         print(f"⚠️ 블로그 발행 실패: {e}")
 
+def write_main_content(driver, review_data, product_data,partner_link):
+    try:
+        content_element = driver.find_element(By.CSS_SELECTOR, "span.se-placeholder.__se_placeholder.se-fs15")
+        action = ActionChains(driver)
+        action.move_to_element(content_element).click().perform()
+        
+        # 첫 번째 텍스트 입력
+        first_content = (
+            "이 포스팅은 쿠팡 파트너스 활동의 일환으로,\n"
+            "이에 따른 일정액의 수수료를 제공받습니다.\n\n"
+        )
+        action.send_keys(first_content).perform()
+
+        # 메인 이미지 업로드
+        img_path = product_data["main_img_path"]  # 절대 경로 변환
+        upload_image(driver, img_path)
+        time.sleep(2)
+
+        # 서론 추가
+        action.send_keys(Keys.ENTER).send_keys(review_data["introduction"]).perform()
+
+         # 제품 분석
+        product_analysis = review_data["product_analysis"]
+        analysis_text = f"""
+        🔍 {product_analysis['product_name']} 제품 분석
+            {product_analysis['target_audience']}
+            {product_analysis['competitor_comparison']}
+        """
+        action.send_keys(Keys.ENTER).send_keys(analysis_text).perform()
+
+         # 주요 특징
+        action.send_keys(Keys.ENTER).send_keys("📌 주요 특징").perform()
+        for feature in product_analysis["key_features"]:
+            action.send_keys(Keys.ENTER).send_keys(feature).perform()
+
+        # 리뷰 이미지 업로드
+        if product_data["review_img_path"]:
+            img_path = product_data["review_img_path"] 
+            upload_image(driver, img_path)
+            time.sleep(2)
+
+        # 제품 설명 추가
+        action.send_keys(Keys.ENTER).send_keys(review_data["product_description"]).perform()
+
+        # 제품 구매링크
+        action.send_keys(Keys.ENTER).send_keys(partner_link).perform()
+
+        # FAQ 추가
+        action.send_keys(Keys.ENTER).send_keys("❓ **자주 묻는 질문**").perform()
+        for faq in review_data["faq"]:
+            action.send_keys(Keys.ENTER).send_keys(faq["question"]).perform()
+            action.send_keys(Keys.ENTER).send_keys(faq["answer"]).perform()
+
+        # 태그 추가
+        action.send_keys(Keys.ENTER).send_keys("🏷️ **태그**").perform()
+        for tag in review_data["tags"]:
+            action.send_keys(Keys.ENTER).send_keys(tag).perform()
+
+
+        
+        # 이미지 아래에 추가 텍스트 입력
+        action.send_keys(Keys.ENTER).send_keys(Keys.ENTER)  # 이미지 아래로 커서 이동
+        # action.send_keys(content['content']).perform()
+        print("✅ 본문 작성 완료")
+    except Exception as e:
+        print(f"⚠️ 본문 입력 실패: {e}")
 
 def upload_image(driver, img_path):
     """이미지 업로드 함수"""
